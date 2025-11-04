@@ -1,18 +1,38 @@
-name: Terraform IBM Cloud
+name: Terraform IBM Cloud - Parameterized
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "Terraform action to perform"
+        required: true
+        default: "plan"
+        type: choice
+        options:
+          - init
+          - plan
+          - apply
+          - destroy
+      region:
+        description: "IBM Cloud region"
+        required: true
+        default: "us-south"
+      environment:
+        description: "Environment (dev/stage/prod)"
+        required: true
+        default: "dev"
 
 jobs:
   terraform:
-    name: 'Terraform Apply'
+    name: Terraform ${{ github.event.inputs.action }}
     runs-on: ubuntu-latest
+    env:
+      TF_VAR_ibmcloud_api_key: ${{ secrets.IBM_CLOUD_API_KEY }}
+      TF_VAR_region: ${{ github.event.inputs.region }}
+      ENVIRONMENT: ${{ github.event.inputs.environment }}
 
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Setup Terraform
@@ -21,14 +41,24 @@ jobs:
           terraform_version: 1.9.5
 
       - name: Terraform Init
+        if: ${{ github.event.inputs.action == 'init' }}
         run: terraform init
 
-      - name: Terraform Validate
-        run: terraform validate
-
       - name: Terraform Plan
-        run: terraform plan -var "ibmcloud_api_key=${{ secrets.IBM_CLOUD_API_KEY }}"
+        if: ${{ github.event.inputs.action == 'plan' }}
+        run: |
+          terraform init -input=false
+          terraform validate
+          terraform plan -var "region=${{ github.event.inputs.region }}" -out=tfplan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main'
-        run: terraform apply -auto-approve -var "ibmcloud_api_key=${{ secrets.IBM_CLOUD_API_KEY }}"
+        if: ${{ github.event.inputs.action == 'apply' }}
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve -var "region=${{ github.event.inputs.region }}"
+
+      - name: Terraform Destroy
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: |
+          terraform init -input=false
+          terraform destroy -auto-approve -var "region=${{ github.event.inputs.region }}"
