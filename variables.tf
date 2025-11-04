@@ -7,11 +7,11 @@ variable "ibmcloud_api_key" {
 variable "region" {
   description = "IBM Cloud region"
   type        = string
-  default     = "us-south" # or your preferred region
+  default     = "us-south"
 }
 
 variable "resource_group_name" {
-  description = "Name of the resource group"
+  description = "Base name for resource group"
   type        = string
-  default     = "demo-terraform-rg-${random_id.suffix.hex}"
+  default     = "demo-terraform-rg"
 }
