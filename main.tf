@@ -15,11 +15,7 @@ provider "ibm" {
 }
 
 resource "ibm_resource_group" "rg_demo" {
-  name = var.resource_group_name
-}
-
-resource "random_id" "suffix" {
-  byte_length = 3
+  name = "${var.resource_group_name}-${random_id.suffix.hex}"
 }
 
 resource "ibm_resource_instance" "cos_instance" {
