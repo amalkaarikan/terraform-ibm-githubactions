@@ -10,7 +10,7 @@ on:
       region:
         description: "IBM Cloud region"
         required: true
-        default: "us-south"
+        default: "global"
       environment:
         description: "Environment name (dev/stage/prod)"
         required: true
