@@ -18,6 +18,10 @@ resource "ibm_resource_group" "rg_demo" {
   name = var.resource_group_name
 }
 
+resource "random_id" "suffix" {
+  byte_length = 3
+}
+
 resource "ibm_resource_instance" "cos_instance" {
   name              = "demo-cos-instance"
   service           = "cloud-object-storage"
