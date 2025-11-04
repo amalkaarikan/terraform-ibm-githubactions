@@ -7,7 +7,7 @@ variable "ibmcloud_api_key" {
 variable "region" {
   description = "IBM Cloud region"
   type        = string
-  default     = "us-south"
+  default     = ""global"
 }
 
 variable "resource_group_name" {
