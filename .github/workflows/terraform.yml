@@ -1,10 +1,10 @@
-name: Terraform IBM Cloud - Custom Run
+name: Terraform IBM Cloud - Parameterized
 
 on:
   workflow_dispatch:
     inputs:
       steps_to_run:
-        description: "Select which Terraform steps to execute (comma-separated)"
+        description: "Comma-separated Terraform steps to execute (init,validate,plan,apply,destroy)"
         required: true
         default: "init,plan"
       region:
@@ -18,11 +18,12 @@ on:
 
 jobs:
   terraform:
+    name: Terraform - ${{ github.event.inputs.steps_to_run }}
     runs-on: ubuntu-latest
     env:
-      TF_VAR_ibmcloud_api_key: ${{ secrets.IBM_CLOUD_API_KEY }}
       TF_VAR_region: ${{ github.event.inputs.region }}
       ENVIRONMENT: ${{ github.event.inputs.environment }}
+      IBMCLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
 
     steps:
       - name: Checkout repository
@@ -31,27 +32,63 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.9.5
+          terraform_version: "1.9.5"
 
       - name: Display selected steps
-        run: echo "Steps selected: ${{ github.event.inputs.steps_to_run }}"
+        run: |
+          echo "Steps selected: ${{ github.event.inputs.steps_to_run }}"
+          echo "Region: ${{ github.event.inputs.region }}"
+          echo "Environment: ${{ github.event.inputs.environment }}"
 
+      # ---------------------------
+      # Terraform Init
+      # ---------------------------
       - name: Terraform Init
         if: contains(github.event.inputs.steps_to_run, 'init')
-        run: terraform init
+        run: |
+          echo "Initializing Terraform..."
+          echo "IBMCLOUD_API_KEY=${{ secrets.IBM_CLOUD_API_KEY }}" >> $GITHUB_ENV
+          terraform init -input=false
 
+      # ---------------------------
+      # Terraform Validate
+      # ---------------------------
       - name: Terraform Validate
         if: contains(github.event.inputs.steps_to_run, 'validate')
-        run: terraform validate
+        run: |
+          echo "Validating Terraform code..."
+          terraform validate
 
+      # ---------------------------
+      # Terraform Plan
+      # ---------------------------
       - name: Terraform Plan
         if: contains(github.event.inputs.steps_to_run, 'plan')
-        run: terraform plan -var "region=${{ github.event.inputs.region }}" -out=tfplan
+        run: |
+          echo "Running terraform plan..."
+          terraform plan \
+            -var "ibmcloud_api_key=${{ secrets.IBM_CLOUD_API_KEY }}" \
+            -var "region=${{ github.event.inputs.region }}" \
+            -out=tfplan
 
+      # ---------------------------
+      # Terraform Apply
+      # ---------------------------
       - name: Terraform Apply
         if: contains(github.event.inputs.steps_to_run, 'apply')
-        run: terraform apply -auto-approve -var "region=${{ github.event.inputs.region }}"
+        run: |
+          echo "Running terraform apply..."
+          terraform apply -auto-approve \
+            -var "ibmcloud_api_key=${{ secrets.IBM_CLOUD_API_KEY }}" \
+            -var "region=${{ github.event.inputs.region }}"
 
+      # ---------------------------
+      # Terraform Destroy
+      # ---------------------------
       - name: Terraform Destroy
         if: contains(github.event.inputs.steps_to_run, 'destroy')
-        run: terraform destroy -auto-approve -var "region=${{ github.event.inputs.region }}"
+        run: |
+          echo "Running terraform destroy..."
+          terraform destroy -auto-approve \
+            -var "ibmcloud_api_key=${{ secrets.IBM_CLOUD_API_KEY }}" \
+            -var "region=${{ github.event.inputs.region }}"
