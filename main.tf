@@ -22,7 +22,7 @@ resource "ibm_resource_instance" "cos_instance" {
   name              = "demo-cos-instance"
   service           = "cloud-object-storage"
   plan              = "standard"
-  location          = var.region
+  location          = "global"
   resource_group_id = ibm_resource_group.rg_demo.id
 }
 
