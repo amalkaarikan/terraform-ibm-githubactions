@@ -1,4 +1,12 @@
 terraform {
+
+  cloud {
+    organization = "kaarikan" 
+    workspaces {
+      name = "ibmcloud-terraform" 
+    }
+  }
+
   required_providers {
     ibm = {
       source  = "IBM-Cloud/ibm"
