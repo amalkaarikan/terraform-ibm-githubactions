@@ -21,6 +21,7 @@ jobs:
     name: Terraform - ${{ github.event.inputs.steps_to_run }}
     runs-on: ubuntu-latest
     env:
+      TF_TOKEN_app_terraform_io: ${{ secrets.TF_API_TOKEN }}
       TF_VAR_region: ${{ github.event.inputs.region }}
       ENVIRONMENT: ${{ github.event.inputs.environment }}
       IBMCLOUD_API_KEY: ${{ secrets.IBM_CLOUD_API_KEY }}
